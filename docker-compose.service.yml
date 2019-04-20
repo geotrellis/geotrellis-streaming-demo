@@ -1,0 +1,29 @@
+version: '2'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  geotrellis-streaming-demo:
+    image: quay.io/geodocker-pointcloud-mbio
+    command: 
+      - /bin/sh
+      - -c
+      - |
+        spark-submit \
+          --driver-memory 2G \
+          --executor-memory 2G \
+          --conf spark.scheduler.mode=FAIR \
+          --conf spark.executor.cores=1 \
+          --conf spark.streaming.kafka.maxRatePerPartition=6 \
+          --class com.azavea.Main \
+          /opt/geotrellis-streaming-demo/geotrellis-streaming-demo-assembly.jar --topic imagery_to_process
