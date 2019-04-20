@@ -3,10 +3,12 @@
 This is a project that contains a rendering raster process via `GeoTrellis`. 
 The input data is a `Kafka` stream, the output - a set of rasters and some json metadata outputs.
 
+The project contains two subprojects: `streaming` (the actual streaming application) and 
+`producer` (subproject used for test purposes, that generates test kafka messages).
+
 - [Environment](#environment)
 - [Makefile commands](#makefile-commands)
-- [application.conf description](#applicationconf-description) (a pretty important section, as here Azure credentials should be injected)
-- [log4j.properties description](#log4jproperties-description) (enabling fluentd logging)
+- [application.conf description](#applicationconf-description)
 - [Usage Example in SBT shell](#usage-example-in-sbt-shell)
 - [Usage example](#usage-example)
   - [Kafka in Docker usage](#kafka-in-docker-usage)
@@ -29,15 +31,75 @@ Makefile is provided to simplify launch and integration tests of the application
 |build                    |Build a fat jar to run on Spark                                           |
 |clean                    |Clean up targets                                                          |
 |kafka                    |Run a dockerized kafka, see README.md to know more about it               |
-|service-example          |Run a dockerized version of the whole app example                         |
 |kafka-send-messages      |Produce demo kafka messages                                               |
+|sbt-spark-demo           |Run a spark streaming application from the SBT shell                      |
 
 ### application.conf description
 
-Application settings provided via configuration file in the resources folder. (P.S. [application.conf.template](https://github.com/pomadchin/geotrellis-streaming-demo/blob/master/app/src/main/resources/application.conf.template) is a template to fill in.)
+Application settings provided via configuration file in the resources folder (`streaming`).
 
 ```conf
+ingest.stream {
+  # kafka setting
+  kafka {
+    threads           = 10
+    topic             = "geotrellis-streaming"
+    otopic            = "geotrellis-streaming-output"
+    application-id    = "geotrellis-streaming"
+    bootstrap-servers = "localhost:9092"
+  }
+  # spark streaming settings
+  spark {
+    batch-duration    = 10 // in seconds
+    partitions        = 10
+    auto-offset-reset = "latest"
+    auto-commit       = true
+    publish-to-kafka  = true
+    group-id          = "spark-streaming-data"
+    checkpoint-dir    = ""
+  }
+}
 
+# geotrellis gdal VLM settings
+vlm {
+  gdal.options {
+    GDAL_DISABLE_READDIR_ON_OPEN = "YES"
+    CPL_VSIL_CURL_ALLOWED_EXTENSIONS = ".tif"
+  }
+
+  # if true then uses GDALRasterSources
+  source.gdal.enabled = true
+}
+```
+
+Application settings provided via configuration file in the resources folder (`producer`).
+
+```conf
+lc8 {
+  scenes = [
+    {
+      name = "LC08_L1TP_139044_20170304_20170316_01_T1" # name of the LC8 scene
+      band = "1" # band number
+      count = 2 # number of generated polygons
+      crs = "EPSG:4326" # desired generated CRS
+      output-path = "../data/img" # the output path where the result output should be placed after processing
+    },
+    {
+      name = "LC08_L1TP_139045_20170304_20170316_01_T1"
+      band = "2"
+      count = 2
+      crs = "EPSG:4326"
+      output-path = "../data/img"
+    },
+    {
+      name = "LC08_L1TP_139046_20170304_20170316_01_T1"
+      band = "2"
+      count = 2
+      crs = "EPSG:4326"
+      output-path = "../data/img"
+    }
+  ]
+}
 ```
 
 ## Usage Example in SBT shell
@@ -53,17 +115,46 @@ To summarise:
 Terminal №1:
 
 ```bash
-$ cd app; ./sbt
-$ project streaming
-$ run
+$ make kafka
 ```
 
 Terminal №2:
 
 ```bash
 $ cd app; ./sbt
+$ project streaming
+$ run
+```
+
+or
+
+```bash
+$ make sbt-spark-demo
+```
+
+Terminal №3:
+
+```bash
+$ cd app; ./sbt
 $ project producer
 $ run --generate-and-send
+```
+
+or
+
+```bash
+$ make kafka-send-messages
+```
+
+Extra summary:
+
+```bash
+# terminal 1
+make kafka
+# terminal 2
+make sbt-spark-demo
+# terminal 3
+make kafka-send-messages
 ```
 
 ## Usage Example

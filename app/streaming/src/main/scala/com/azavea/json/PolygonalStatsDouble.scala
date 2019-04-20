@@ -9,6 +9,8 @@ import io.circe.generic.extras.ConfiguredJsonCodec
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 
+import java.io.PrintWriter
+
 @ConfiguredJsonCodec
 case class PolygonalStatsDouble(
   uri: String,
@@ -18,9 +20,14 @@ case class PolygonalStatsDouble(
   polygonalSumDouble: Array[Double],
   polygonalMinDouble: Array[Double],
   polygonalMaxDouble: Array[Double]
-) {
+) { self =>
   def write(path: Path, conf: Configuration): PolygonalStatsDouble = {
-    HdfsUtils.write(path, conf) { _.write(this.asJson.spaces2.getBytes) }
-    this
+    HdfsUtils.write(path, conf) { _.write(self.asJson.spaces2.getBytes) }
+    self
+  }
+
+  def write(path: String): PolygonalStatsDouble = {
+    new PrintWriter(path) { write(self.asJson.spaces2); close }
+    self
   }
 }

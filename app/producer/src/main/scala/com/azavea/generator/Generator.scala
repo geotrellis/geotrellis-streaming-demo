@@ -17,23 +17,31 @@ import com.azavea.kafka.MessageSender
 object Generator {
   lazy val messageSender: MessageSender[String, String] = getMessageSender(IngestStreamConfig.kafka.bootstrapServers)
 
-  def square(size: Int, dx: Double, dy: Double): Line =
-    Line(Seq((-size, -size), (size, -size), (size, size), (-size, size), (-size, -size))
-      .map { case (x, y) => (x + dx, y + dy) })
+  def randomExtentWithin(extent: Extent, sampleScale: Double = 0.10): Extent = {
+    assert(sampleScale > 0 && sampleScale <= 1)
+    val extentWidth = extent.xmax - extent.xmin
+    val extentHeight = extent.ymax - extent.ymin
 
-  def multiPolygons(width: Int, height: Int, count: Int): Seq[(Int, MultiPolygon)] =
-    Try {
+    val sampleWidth = extentWidth * sampleScale
+    val sampleHeight = extentHeight * sampleScale
+
+    val testRandom = Random.nextDouble()
+    val subsetXMin = (testRandom * (extentWidth - sampleWidth)) + extent.xmin
+    val subsetYMin = (Random.nextDouble() * (extentHeight - sampleHeight)) + extent.ymin
+
+    Extent(subsetXMin, subsetYMin, subsetXMin + sampleWidth, subsetYMin + sampleHeight)
+  }
+
+  def multiPolygons(extent: Extent)(count: Int): Seq[(Int, MultiPolygon)] = {
+    val polygons =
       for {
         id <- 1 to count
-        size = Random.nextInt(3 * height / 4) + height / 4
-        dx = Random.nextInt(width - size) - width / 2 - 0.1
-        dy = Random.nextInt(height - size) - height / 2 - 0.1
-        border = square(size, dx, dy)
-      } yield (id, MultiPolygon(Polygon(border)))
-    } match {
-      case Success(v) => v
-      case Failure(_) => multiPolygons(width, height, count)
-    }
+        polygon = randomExtentWithin(extent).toPolygon
+      } yield (id, MultiPolygon(polygon))
+
+    if(polygons.count(_._2.intersects(extent.toPolygon)) == count) polygons
+    else multiPolygons(extent)(count)
+  }
 
   // NOTE: pretty print is done only for demo purposes
   // for a real kafka instance it's recommended to
@@ -54,7 +62,7 @@ object Generator {
         val extent = source.extent
         val crs = source.crs
         val fields =
-          multiPolygons(extent.width.toInt, extent.height.toInt, scene.count)
+          multiPolygons(extent)(scene.count)
             .map { case (id, mp) =>
               Field(
                 id         = s"${scene.name}-${id}",

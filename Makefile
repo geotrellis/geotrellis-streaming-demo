@@ -1,5 +1,5 @@
 ASSEMBLY_VERSION := 0.0.1-SNAPSHOT
-ASSEMBLY         := app/target/scala-2.11/geotrellis-streaming-demo-0.0.1-SNAPSHOT.jar
+ASSEMBLY         := app/streaming/target/scala-2.11/geotrellis-streaming-demo-0.0.1-SNAPSHOT.jar
 
 build: 
 	cd ./app && ./sbt assembly
@@ -29,8 +29,11 @@ local-spark-shell:
 kafka:
 	docker-compose -f docker-compose.kafka.yml up
 
-service-example:
-	docker-compose -f docker-compose.service.yml up
+# service-example:
+# 	docker-compose -f docker-compose.service.yml up
 
 kafka-send-messages:
-	cd ./app && ./sbt "testOnly com.azavea.spark.streaming.IngestSpec -- -z \"produce new messages\""
+	cd ./app && ./sbt "project producer" "run --generate-and-send"
+
+sbt-spark-demo:
+	cd ./app && ./sbt "project streaming" "run"

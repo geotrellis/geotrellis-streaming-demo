@@ -17,16 +17,20 @@ object ProcessStream {
       .list
       .map(_.reproject(source.crs))
       .flatMap { field =>
-        val outputTiffPath = new Path(s"${field.outputPath}/${field.id}.tiff")
-        val outputJsonPath = new Path(s"${field.outputPath}/${field.id}.json")
+        val outputTiffPath = s"${field.outputPath}/${field.id}.tiff"
+        val outputJsonPath = s"${field.outputPath}/${field.id}.json"
         val result = source.read(field.polygon.envelope).map(_.mask(field.polygon))
         // calculate polygonal stats and persist both raster and generates stats as a JSON file
-        println(s"result: ${result}")
 
         result.map { raster =>
           val stats = raster.polygonalStatsDouble(outputTiffPath.toString)(field.polygon)
-          raster.toGeoTiff(source.crs).write(outputTiffPath, conf.value)
-          stats.write(outputJsonPath, conf.value)
+          if(field.outputPath.startsWith("s3://") || field.outputPath.startsWith("hdfs://")) {
+            raster.toGeoTiff(source.crs).write(new Path(outputTiffPath), conf.value)
+            stats.write(new Path(outputJsonPath), conf.value)
+          } else {
+            raster.toGeoTiff(source.crs).write(outputTiffPath)
+            stats.write(new Path(outputJsonPath), conf.value)
+          }
         }
       }
   }

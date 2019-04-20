@@ -26,11 +26,11 @@ object Fields extends LazyLogging {
       case Right(r) => r.as[Fields] match {
         case Right(r) => Some(r)
         case Left(e) =>
-          println(e.stackTraceString)
+          logger.warn(e.stackTraceString)
           None
       }
       case Left(e) =>
-        println(e.stackTraceString)
+        logger.warn(e.stackTraceString)
         None
     }
   }
