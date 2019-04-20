@@ -47,7 +47,10 @@ lazy val commonSettings = Seq(
     case n if n.endsWith(".SF") || n.endsWith(".RSA") || n.endsWith(".DSA") => MergeStrategy.discard
     case "META-INF/MANIFEST.MF" => MergeStrategy.discard
     case _ => MergeStrategy.first
-  }
+  },
+
+  licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
+  headerLicense := Some(HeaderLicense.ALv2("2019", "Azavea"))
 )
 
 lazy val root =

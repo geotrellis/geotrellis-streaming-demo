@@ -1,8 +1,6 @@
 package com.azavea.kafka
 
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord, RecordMetadata}
-import com.typesafe.scalalogging.LazyLogging
-
 import java.util.Properties
 
 object MessageSender {
@@ -62,13 +60,5 @@ class MessageSender[K, V](val brokers: String, val keySerializer: String, val va
 
   def close(): Unit = {
     producer.close()
-  }
-}
-
-object KafkaUtilsClient extends LazyLogging {
-  def publishToKafka(value: String, topic: String, createMessageSender: () => MessageSender[String, String]): Unit = {
-    val sender = createMessageSender()
-    sender.writeValue(topic, value)
-    sender.close()
   }
 }

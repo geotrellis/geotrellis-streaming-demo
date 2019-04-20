@@ -62,12 +62,17 @@ ingest.stream {
 
 # geotrellis gdal VLM settings
 vlm {
+  geotiff.s3 {
+    allow-global-read: false
+    region: "us-west-2"
+  }
+
   gdal.options {
     GDAL_DISABLE_READDIR_ON_OPEN = "YES"
     CPL_VSIL_CURL_ALLOWED_EXTENSIONS = ".tif"
   }
 
-  # if true then uses GDALRasterSources
+  # if true then uses GDALRasterSources, if false GeoTiffRasterSources
   source.gdal.enabled = true
 }
 ```
