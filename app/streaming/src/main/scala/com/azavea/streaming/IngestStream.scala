@@ -48,17 +48,15 @@ case class IngestStream(
 
   implicit val conf: SerializableConfiguration = SerializableConfiguration(ssc.sparkContext.hadoopConfiguration)
 
-  // Create direct kafka stream with brokers and topics
   val topicsSet: Set[String] = Set(topic)
   @transient val stream: InputDStream[ConsumerRecord[String, String]] =
     KafkaUtils.createDirectStream[String, String](
       ssc,
       LocationStrategies.PreferConsistent,
-      ConsumerStrategies.Subscribe[String, String](topicsSet, kafkaParams)
+      ConsumerStrategies.Subscribe[String, String](Set(topic), kafkaParams)
     )
 
-  // parsed DStream
-  @transient val parsedStream: DStream[Fields] =
+  @transient val streamParsed: DStream[Fields] =
     stream
       .flatMap { record =>
         logger.info(s"fields before parsing:: ${record.value}")
@@ -70,14 +68,13 @@ case class IngestStream(
   // foreach triggers stream execution
   // if no partitions number is passed number of partitions would be equal to the number of kafka topics
   partitionsNumber
-    .fold(parsedStream)(parsedStream.repartition)
+    .fold(streamParsed)(streamParsed.repartition)
     .foreachRDD { rdd =>
       rdd.foreachPartition { partition =>
         val sender = getMessageSender(bootstrapServers)
         publishToKafka(partition.flatMap(ProcessStream(_)), sender)
       }
     }
-
 
   def start: Unit = ssc.start()
 
