@@ -164,8 +164,7 @@ make kafka-send-messages
 
 ## Usage Example
 
-1. For instance we already have `Kafka` running localy on 9092 port.
-  1.1 If not, it is possible to launch [Kafka in docker](#kafka-in-docker-usage)
+1. For instance we already have `Kafka` running localy on 9092 port. If not, it is possible to launch [Kafka in docker](#kafka-in-docker-usage)
 2. Build a fat assembly jar: `make build`
 3. Launch a `Spark` app: `make local-spark-processing`
 4. Post a test kafka message: `make kafka-send-messages`

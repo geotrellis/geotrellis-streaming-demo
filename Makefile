@@ -2,7 +2,7 @@ ASSEMBLY_VERSION := 0.0.1-SNAPSHOT
 ASSEMBLY         := app/streaming/target/scala-2.11/geotrellis-streaming-demo-0.0.1-SNAPSHOT.jar
 
 build: 
-	cd ./app && ./sbt assembly
+	cd ./app && ./sbt "project streaming" assembly
 
 clean:
 	cd ./app && ./sbt clean -no-colors
