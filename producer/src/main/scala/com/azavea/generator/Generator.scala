@@ -68,8 +68,12 @@ object Generator {
   def sendFields(fields: Fields, path: String): Unit =
     messageSender.batchWriteValue(IngestStreamConfig.kafka.topic, fields.asJson.spaces2 :: Nil)
 
-  def sendPersisted(path: String): Unit =
-    messageSender.batchWriteValue(IngestStreamConfig.kafka.topic, getListOfFiles(path).map(getJsonFromFile).filter(_.nonEmpty))
+  def sendPersisted(path: String): Unit = {
+    val files = getListOfFiles(path).filter(_.endsWith(".json"))
+    println(s"Sending: $path -> $files")
+    val json = files.map(getJsonFromFile).filter(_.nonEmpty)
+    messageSender.batchWriteValue(IngestStreamConfig.kafka.topic, json)
+  }
 
   def generateFields(implicit cs: ContextShift[IO]): List[IO[Fields]] =
     LC8ScenesConfig.scenes.map { scene =>
@@ -110,4 +114,3 @@ object Generator {
       .unsafeRunSync
 
 }
-
