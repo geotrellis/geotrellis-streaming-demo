@@ -1,5 +1,9 @@
 package com.azavea.kafka
 
+/*
+ * https://github.com/lightbend/kafka-streams-scala/blob/develop/src/test/scala/com/lightbend/kafka/scala/server/MessageSender.scala
+ */
+
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord, RecordMetadata}
 import java.util.Properties
 
