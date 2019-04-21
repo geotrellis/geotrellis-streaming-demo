@@ -1,11 +1,11 @@
 ASSEMBLY_VERSION := 0.0.1-SNAPSHOT
-ASSEMBLY         := app/streaming/target/scala-2.11/geotrellis-streaming-demo-0.0.1-SNAPSHOT.jar
+ASSEMBLY         := streaming/target/scala-2.11/geotrellis-streaming-demo-0.0.1-SNAPSHOT.jar
 
 build: 
-	cd ./app && ./sbt "project streaming" assembly
+	./sbt "project streaming" assembly
 
 clean:
-	cd ./app && ./sbt clean -no-colors
+	./sbt clean -no-colors
 
 local-spark-demo:
 	spark-submit \
@@ -33,7 +33,7 @@ kafka:
 # 	docker-compose -f docker-compose.service.yml up
 
 kafka-send-messages:
-	cd ./app && ./sbt "project producer" "run --generate-and-send"
+	./sbt "project producer" "run --generate-and-send"
 
 sbt-spark-demo:
-	cd ./app && ./sbt "project streaming" "run"
+	./sbt "project streaming" "run"

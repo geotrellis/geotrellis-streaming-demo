@@ -140,7 +140,7 @@ $ make sbt-spark-demo
 Terminal №3:
 
 ```bash
-$ cd app; ./sbt
+$ ./sbt
 $ project producer
 $ run --generate-and-send
 ```
