@@ -62,7 +62,7 @@ object Generator {
   // NOTE: pretty print is done only for demo purposes
   // for a real kafka instance it's recommended to
   def persistFields(fields: Fields, path: String): Unit =
-    if(!path.startsWith("s3://") || !path.startsWith("hdfs://")) new PrintWriter(s"$path/${fields.name}.json") { write(fields.asJson.spaces2); close }
+    if(path.isLocalPath) new PrintWriter(s"$path/${fields.name}.json") { write(fields.asJson.spaces2); close }
     else throw new Exception("Only local FS is supported now")
 
   def sendFields(fields: Fields, path: String): Unit =

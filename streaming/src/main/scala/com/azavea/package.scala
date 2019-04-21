@@ -72,4 +72,9 @@ package object azavea {
   }
 
   def getRasterSource(uri: String): RasterSource = if(GDALEnabled.enabled) GDALRasterSource(uri) else GeoTiffRasterSource(uri)
+
+  implicit class stringMethods(val path: String) extends AnyVal {
+    def isLocalPath: Boolean = !path.startsWith("s3://") || !path.startsWith("s3a://") || !path.startsWith("s3n://") || !path.startsWith("hdfs://")
+    def nonLocalPath: Boolean = !isLocalPath
+  }
 }
